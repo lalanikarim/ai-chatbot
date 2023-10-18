@@ -3,56 +3,123 @@ from langchain.llms import LlamaCpp
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from langchain.callbacks.manager import CallbackManager
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain.callbacks.base import BaseCallbackHandler
 
 
+# StreamHandler to intercept streaming output from the LLM.
+# This makes it appear that the Language Model is "typing"
+# in realtime.
+class StreamHandler(BaseCallbackHandler):
+    def __init__(self, container, initial_text=""):
+        self.container = container
+        self.text = initial_text
+
+    def on_llm_new_token(self, token: str, **kwargs) -> None:
+        self.text += token
+        self.container.markdown(self.text)
+
+
+# The main loop of the Streamlit Application. This is not a typical main()
+# function. Streamlit runs this code in its entirety everytime any inputs
+# change on the webpage.
+#
+# P.S.: Initializing LLM and Langchain inside here seem counterproductive.
+# Hopefully there is a better prescribed way to initialize and manage expensive
+# resources and reference them within here. But for the sake of example, let's
+# not worry about that now.
 def main():
+
+    # Set the webpage title
     st.set_page_config(
         page_title="Your own Chat!"
     )
+
+    # Create a header element
     st.header("Your own Chat!")
 
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+    # This sets the LLM's personality.
+    # The initial personality privided is basic.
+    # Try something interesting and notice how the LLM responses are affected.
+    system_prompt = st.text_area(
+        label="System Prompt",
+        value="You are a helpful AI assistant who answers questions in short sentences.",
+        key="system_prompt")
 
+    # We store the conversation in the session state.
+    # This will be used to render the chat conversation.
+    # We initialize it with the first message we want to be greeted with.
+    if "messages" not in st.session_state:
+        st.session_state.messages = [
+            {"role": "assistant", "content": "How may I help you today?"}
+        ]
+
+    # We loop through each message in the session state and render it as
+    # a chat message.
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
+    # We take questions/instructions from the chat input to pass to the LLM
+    if user_prompt := st.chat_input("Your message here", key="user_input"):
 
-    llm = LlamaCpp(
-            model_path="mistral-7b-instruct-v0.1.Q4_0.gguf",
-            temperature=0,
-            max_tokens=512,
-            top_p=1,
-            callback_manager=callback_manager,
-            verbose=True,
-            )
-
-    template = """
-    You are a funny AI bot who answers questions in a couple of lines.
-
-    {question}
-    """
-
-    prompt = PromptTemplate(template=template, input_variables=["question"])
-
-    llm_chain = LLMChain(prompt=prompt, llm=llm)
-
-    if prompt := st.chat_input("Your message here", key="user_input"):
+        # Add our input to the session state
         st.session_state.messages.append(
-            {"role": "user", "content": prompt}
+            {"role": "user", "content": user_prompt}
         )
 
+        # Add our input to the chat window
         with st.chat_message("user"):
-            st.markdown(prompt)
+            st.markdown(user_prompt)
+        # A stream handler to direct streaming output on the chat screen.
+        # This will need to be handled somewhat differently.
+        # But it demonstrates what potential it carries.
+        stream_handler = StreamHandler(st.empty())
 
-        response = llm_chain.run(prompt)
+        # Callback manager is a way to intercept streaming output from the
+        # LLM and take some action on it. Here we are giving it our custom
+        # stream handler to make it appear as if the LLM is typing the
+        # responses in real time.
+        callback_manager = CallbackManager([stream_handler])
+
+        # We initialize the quantized LLM from a local path.
+        # Currently most parameters are fixed but we can make them
+        # configurable.
+        llm = LlamaCpp(
+                model_path="models/mistral-7b-instruct-v0.1.Q4_0.gguf",
+                temperature=0,
+                max_tokens=512,
+                top_p=1,
+                callback_manager=callback_manager,
+                verbose=True,
+                )
+
+        # Template for the prompt. I am still trying to figure out what exactly
+        # is needed here and if we need to have parameters etc. This may
+        # ultimately be dictated by the model you use.
+        template = """
+        {}
+        
+        {}
+        """.format(system_prompt, "{question}")
+
+        # We create a prompt from the template so we can use it with langchain
+        prompt = PromptTemplate(template=template, input_variables=["question"])
+
+        # We create an llm chain with our llm and prompt
+        llm_chain = LLMChain(prompt=prompt, llm=llm)
+
+        # Pass our input to the llm chain and capture the final responses.
+        # It is worth noting that the Stream Handler is already receiving the
+        # streaming response as the llm is generating. We get our response
+        # here once the llm has finished generating the complete response.
+        response = llm_chain.run(user_prompt)
+
+        # Add the response to the session state
         st.session_state.messages.append(
             {"role": "assistant", "content": response}
         )
 
+        # Add the response to the chat window
         with st.chat_message("assistant"):
             st.markdown(response)
 
