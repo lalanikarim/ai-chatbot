@@ -1,4 +1,12 @@
-# Streamlit + Langchain + Mistral
+# Streamlit + Langchain + LLama.cpp w/ Mistral
+
+Run your own AI Chatbot locally without a GPU.
+
+To make that possible, we use the [Mistral 7b](https://mistral.ai/news/announcing-mistral-7b/) model.  
+However, you can use any quantized model that is supported by [llama.cpp](https://github.com/ggerganov/llama.cpp).
+
+This model will chatbot will allow you to define it's personality and respond to the questions accordingly.  
+There is not chat memory, so you won't be able to ask follow up questions.
 
 # TL;DR instructions
 

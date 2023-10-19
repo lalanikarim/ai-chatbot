@@ -42,9 +42,11 @@ def create_chain(system_prompt):
             streaming=True,
             )
 
-    # Template for the prompt. I am still trying to figure out what exactly
-    # is needed here and if we need to have parameters etc. This may
-    # ultimately be dictated by the model you use.
+    # Template you will use to structure your user input into before converting
+    # into a prompt. Here, my template first injects the personality I wish to give
+    # to the LLM before in the form of system_prompt pushing the actual prompt from the user.
+    # Note that this chatbot doesn't have any memory of the conversation. So we will inject the
+    # system prompt for each message.
     template = """
     {}
 
@@ -60,15 +62,6 @@ def create_chain(system_prompt):
     return llm_chain
 
 
-# The main loop of the Streamlit Application. This is not a typical main()
-# function. Streamlit runs this code in its entirety everytime any inputs
-# change on the webpage.
-#
-# P.S.: Initializing LLM and Langchain inside here seem counterproductive.
-# Hopefully there is a better prescribed way to initialize and manage expensive
-# resources and reference them within here. But for the sake of example, let's
-# not worry about that now.
-
 # Set the webpage title
 st.set_page_config(
     page_title="Your own Chat!"
@@ -77,13 +70,16 @@ st.set_page_config(
 # Create a header element
 st.header("Your own Chat!")
 
-# This sets the LLM's personality.
+# This sets the LLM's personality for each prompt.
 # The initial personality privided is basic.
 # Try something interesting and notice how the LLM responses are affected.
 system_prompt = st.text_area(
     label="System Prompt",
     value="You are a helpful AI assistant who answers questions in short sentences.",
     key="system_prompt")
+
+# Create llm chain to use for our chat bot.
+llm_chain = create_chain(system_prompt)
 
 # We store the conversation in the session state.
 # This will be used to render the chat conversation.
@@ -113,11 +109,6 @@ if user_prompt := st.chat_input("Your message here", key="user_input"):
     # Add our input to the chat window
     with st.chat_message("user"):
         st.markdown(user_prompt)
-
-    # We initialize the quantized LLM from a local path.
-    # Currently most parameters are fixed but we can make them
-    # configurable.
-    llm_chain = create_chain(system_prompt)
 
     # Pass our input to the llm chain and capture the final responses.
     # It is worth noting that the Stream Handler is already receiving the
