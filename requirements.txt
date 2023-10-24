@@ -1,0 +1,3 @@
+langchain==0.0.321
+llama_cpp_python==0.2.11
+streamlit==1.27.2

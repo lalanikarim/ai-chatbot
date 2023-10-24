@@ -30,9 +30,9 @@ python -m venv venv
 ```bash
 source venv/bin/activate
 ```
-4. Install `langchain`, `llama.cpp`, and `streamlit`:
+4. Install required packages (`langchain`, `llama.cpp`, and `streamlit`):
 ```bash
-pip install langchain llama-cpp-python streamlit
+pip install -r requirements.txt
 ```
 5. Create a subdirectory to place the models in:
 ```bash
