@@ -1,4 +1,6 @@
 import streamlit as st
+import os
+from urllib.request import urlretrieve
 from langchain.llms import LlamaCpp
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
@@ -32,8 +34,15 @@ def create_chain(system_prompt):
     # responses in real time.
     # callback_manager = CallbackManager([stream_handler])
 
+    (url,model_path) = (
+            "https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.1-GGUF/resolve/main/mistral-7b-instruct-v0.1.Q5_0.gguf",
+            "models/mistral-7b-instruct-v0.1.Q5_0.gguf")
+
+    if not os.path.exists(model_path):
+        urlretrieve(url,model_path)
+
     llm = LlamaCpp(
-            model_path="models/mistral-7b-instruct-v0.1.Q4_0.gguf",
+            model_path=model_path,
             temperature=0,
             max_tokens=512,
             top_p=1,
@@ -57,7 +66,8 @@ def create_chain(system_prompt):
     prompt = PromptTemplate(template=template, input_variables=["question"])
 
     # We create an llm chain with our llm and prompt
-    llm_chain = LLMChain(prompt=prompt, llm=llm)
+    # llm_chain = LLMChain(prompt=prompt, llm=llm) # Legacy
+    llm_chain = prompt | llm # LCEL
 
     return llm_chain
 
@@ -114,7 +124,7 @@ if user_prompt := st.chat_input("Your message here", key="user_input"):
     # It is worth noting that the Stream Handler is already receiving the
     # streaming response as the llm is generating. We get our response
     # here once the llm has finished generating the complete response.
-    response = llm_chain.run(user_prompt)
+    response = llm_chain.invoke({"question":user_prompt})
 
     # Add the response to the session state
     st.session_state.messages.append(
