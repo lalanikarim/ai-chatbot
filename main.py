@@ -34,9 +34,14 @@ def create_chain(system_prompt):
     # responses in real time.
     # callback_manager = CallbackManager([stream_handler])
 
-    (url,model_path) = (
+    (url,model_name) = (
             "https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.1-GGUF/resolve/main/mistral-7b-instruct-v0.1.Q5_0.gguf",
-            "models/mistral-7b-instruct-v0.1.Q5_0.gguf")
+            "mistral-7b-instruct-v0.1.Q5_0.gguf")
+
+    if not os.path.exists("models"):
+        os.mkdir("models")
+
+    model_path = "models/" + model_name
 
     if not os.path.exists(model_path):
         urlretrieve(url,model_path)
