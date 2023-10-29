@@ -1,11 +1,9 @@
 import streamlit as st
-import os
-from urllib.request import urlretrieve
 from langchain.llms import LlamaCpp
 from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
 # from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.base import BaseCallbackHandler
+from huggingface_hub import hf_hub_download
 
 
 # StreamHandler to intercept streaming output from the LLM.
@@ -34,17 +32,12 @@ def create_chain(system_prompt):
     # responses in real time.
     # callback_manager = CallbackManager([stream_handler])
 
-    (url,model_name) = (
-            "https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.1-GGUF/resolve/main/mistral-7b-instruct-v0.1.Q5_0.gguf",
-            "mistral-7b-instruct-v0.1.Q5_0.gguf")
+    (repo_id, model_file_name) = ("TheBloke/Mistral-7B-Instruct-v0.1-GGUF",
+                                  "mistral-7b-instruct-v0.1.Q5_0.gguf")
 
-    if not os.path.exists("models"):
-        os.mkdir("models")
-
-    model_path = "models/" + model_name
-
-    if not os.path.exists(model_path):
-        urlretrieve(url,model_path)
+    model_path = hf_hub_download(repo_id=repo_id,
+                                 filename=model_file_name,
+                                 repo_type="model")
 
     llm = LlamaCpp(
             model_path=model_path,
@@ -57,10 +50,10 @@ def create_chain(system_prompt):
             )
 
     # Template you will use to structure your user input into before converting
-    # into a prompt. Here, my template first injects the personality I wish to give
-    # to the LLM before in the form of system_prompt pushing the actual prompt from the user.
-    # Note that this chatbot doesn't have any memory of the conversation. So we will inject the
-    # system prompt for each message.
+    # into a prompt. Here, my template first injects the personality I wish to
+    # give to the LLM before in the form of system_prompt pushing the actual
+    # prompt from the user. Note that this chatbot doesn't have any memory of
+    # the conversation. So we will inject the system prompt for each message.
     template = """
     {}
 
@@ -72,7 +65,7 @@ def create_chain(system_prompt):
 
     # We create an llm chain with our llm and prompt
     # llm_chain = LLMChain(prompt=prompt, llm=llm) # Legacy
-    llm_chain = prompt | llm # LCEL
+    llm_chain = prompt | llm  # LCEL
 
     return llm_chain
 
@@ -129,7 +122,7 @@ if user_prompt := st.chat_input("Your message here", key="user_input"):
     # It is worth noting that the Stream Handler is already receiving the
     # streaming response as the llm is generating. We get our response
     # here once the llm has finished generating the complete response.
-    response = llm_chain.invoke({"question":user_prompt})
+    response = llm_chain.invoke({"question": user_prompt})
 
     # Add the response to the session state
     st.session_state.messages.append(
