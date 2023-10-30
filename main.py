@@ -52,6 +52,7 @@ def create_chain(system_prompt):
             # n_gpu_layers=1,
             # n_batch=512,
             # n_ctx=4096,
+            stop=["[INST]"],
             verbose=False,
             streaming=True,
             )
@@ -62,9 +63,9 @@ def create_chain(system_prompt):
     # prompt from the user. Note that this chatbot doesn't have any memory of
     # the conversation. So we will inject the system prompt for each message.
     template = """
-    {}
+    <s>[INST]{}[/INST]</s>
 
-    {}
+    [INST]{}[/INST]
     """.format(system_prompt, "{question}")
 
     # We create a prompt from the template so we can use it with langchain
