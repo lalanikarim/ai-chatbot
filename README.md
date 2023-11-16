@@ -12,13 +12,14 @@ license: mit
 
 # Streamlit + Langchain + LLama.cpp w/ Mistral
 
-Run your own AI Chatbot locally without a GPU.
+Run your own AI Chatbot locally on a GPU or even a CPU.
 
 To make that possible, we use the [Mistral 7b](https://mistral.ai/news/announcing-mistral-7b/) model.  
 However, you can use any quantized model that is supported by [llama.cpp](https://github.com/ggerganov/llama.cpp).
 
-This model will chatbot will allow you to define it's personality and respond to the questions accordingly.  
-There is not chat memory, so you won't be able to ask follow up questions.
+This AI chatbot will allow you to define its personality and respond to the questions accordingly.  
+There is no chat memory in this iteration, so you won't be able to ask follow-up questions.
+The chatbot will essentially behave like a Question/Answer bot.
 
 # TL;DR instructions
 
@@ -36,7 +37,7 @@ The setup assumes you have `python` already installed and `venv` module availabl
 ```bash
 python -m venv venv
 ```
-3. Activate the python envitonment:
+3. Activate the python environment:
 ```bash
 source venv/bin/activate
 ```
