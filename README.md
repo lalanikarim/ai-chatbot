@@ -49,7 +49,7 @@ pip install -r requirements.txt
 ```bash
 streamlit run main.py
 ```
-6. The `Mistral7b` quantized model from `huggingface` will be downloaded and saved in `models` folder from the following link:
+6. The `Mistral7b` quantized model from `huggingface` will be downloaded and cached locally from the following link:
 [mistral-7b-instruct-v0.1.Q4_0.gguf](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.1-GGUF/resolve/main/mistral-7b-instruct-v0.1.Q4_0.gguf)
 
 # Screenshot
