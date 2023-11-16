@@ -28,8 +28,8 @@ def create_chain(system_prompt):
 
     # Callback manager is a way to intercept streaming output from the
     # LLM and take some action on it. Here we are giving it our custom
-    # stream handler to make it appear as if the LLM is typing the
-    # responses in real time.
+    # stream handler to make it appear that the LLM is typing the
+    # responses in real-time.
     # callback_manager = CallbackManager([stream_handler])
 
     (repo_id, model_file_name) = ("TheBloke/Mistral-7B-Instruct-v0.1-GGUF",
@@ -39,10 +39,10 @@ def create_chain(system_prompt):
                                  filename=model_file_name,
                                  repo_type="model")
 
-    # initialize LlamaCpp llm model
+    # initialize LlamaCpp LLM model
     # n_gpu_layers, n_batch, and n_ctx are for GPU support.
     # When not set, CPU will be used.
-    # set 1 for mac m2, and higher numbers based on your GPU support
+    # set 1 for Mac m2, and higher numbers based on your GPU support
     llm = LlamaCpp(
             model_path=model_path,
             temperature=0,
@@ -57,7 +57,7 @@ def create_chain(system_prompt):
             streaming=True,
             )
 
-    # Template you will use to structure your user input into before converting
+    # Template you will use to structure your user input before converting
     # into a prompt. Here, my template first injects the personality I wish to
     # give to the LLM before in the form of system_prompt pushing the actual
     # prompt from the user. Note that this chatbot doesn't have any memory of
@@ -68,10 +68,10 @@ def create_chain(system_prompt):
     [INST]{}[/INST]
     """.format(system_prompt, "{question}")
 
-    # We create a prompt from the template so we can use it with langchain
+    # We create a prompt from the template so we can use it with Langchain
     prompt = PromptTemplate(template=template, input_variables=["question"])
 
-    # We create an llm chain with our llm and prompt
+    # We create an llm chain with our LLM and prompt
     # llm_chain = LLMChain(prompt=prompt, llm=llm) # Legacy
     llm_chain = prompt | llm  # LCEL
 
@@ -80,21 +80,21 @@ def create_chain(system_prompt):
 
 # Set the webpage title
 st.set_page_config(
-    page_title="Your own Chat!"
+    page_title="Your own aiChat!"
 )
 
 # Create a header element
-st.header("Your own Chat!")
+st.header("Your own aiChat!")
 
 # This sets the LLM's personality for each prompt.
-# The initial personality privided is basic.
+# The initial personality provided is basic.
 # Try something interesting and notice how the LLM responses are affected.
 system_prompt = st.text_area(
     label="System Prompt",
     value="You are a helpful AI assistant who answers questions in short sentences.",
     key="system_prompt")
 
-# Create llm chain to use for our chat bot.
+# Create LLM chain to use for our chatbot.
 llm_chain = create_chain(system_prompt)
 
 # We store the conversation in the session state.
@@ -126,10 +126,10 @@ if user_prompt := st.chat_input("Your message here", key="user_input"):
     with st.chat_message("user"):
         st.markdown(user_prompt)
 
-    # Pass our input to the llm chain and capture the final responses.
+    # Pass our input to the LLM chain and capture the final responses.
     # It is worth noting that the Stream Handler is already receiving the
     # streaming response as the llm is generating. We get our response
-    # here once the llm has finished generating the complete response.
+    # here once the LLM has finished generating the complete response.
     response = llm_chain.invoke({"question": user_prompt})
 
     # Add the response to the session state
